@@ -2,7 +2,7 @@
 % The main entrance of back-testing system
 %--------------------------------------------
 
-function  multi_period
+function multi_period
 
     load Hist.mat; 
     n = size(Price,2);
@@ -38,6 +38,7 @@ function  multi_period
     x = (.7/n)*e;
        
     for i = 1:length(rebalance_dates)
+    %for i = 1:1
 
         trade_date = rebalance_dates(i);
 
@@ -51,7 +52,7 @@ function  multi_period
         xx0 = x0;
         xx = x;
         [x0,x] =  cvx_markowitz(mu0,mu,V,sigma,xx0,xx,trans_cost);
-        solve_mv_PBR(x, mu, V);
+        [x0,x] = solve_mv_PBR(x, mu, V);
         acc_cost2(i) = acc_cost2(max(1,i-1))-x0-sum(x)+1;
 
         wealth = wealth*(x0 + sum(x));

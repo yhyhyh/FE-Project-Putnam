@@ -1,17 +1,18 @@
-function solve_mv_PBR(w_mv, mu, cov)
+function [x0,x] = solve_mv_PBR(w_mv, mu, cov)
     n = length(mu);
-    
-    mu4i = (mu-mean(mu)).^4;
-    alpha = (mu4i/n-(n-3)/(n*(n-1))*(diag(cov).^2)).^0.25;
+    mu4i = ones(n,n);
+    sig = mu4i;
+    for i = 1:n
+        for j = 1:n
+            sig(i,j) = sum((mu-mu(i)).*(mu-mu(j)))/n;
+            mu4i(i,j) = sum((mu-mu(i)).^2.*(mu-mu(j)).^2)/n;
+        end
+    end
+    Q2 = (mu4i-sig.^2)/n+(sig.^2+diag(sig)*diag(sig)')/(n*(n-1));
+    A = nearestSPD(Q2);
+    [x0,x] = cvx_mv_PBR2(0,mu,sig,A,0,10)
+    alpha = (diag(mu4i)/n-(n-3)/(n*(n-1))*(diag(sig).^2)).^0.25;
     beta = -(ones(1,n)*pinv(cov)*alpha)/(ones(1,n)*pinv(cov)*ones(n,1));
-    alpha
-    beta
-    beta1 = (alpha'*pinv(cov)*mu)*(mu'*pinv(cov)*ones(n,1));
-    beta1 = beta1-(alpha'*pinv(cov)*ones(n,1))*(mu'*pinv(cov)*mu);
-    div = (ones(1,n)*pinv(cov)*ones(n,1))*(mu'*pinv(cov)*mu);
-    div = div-(mu'*pinv(cov)*ones(n,1));
-    beta1 = beta1/div;
-    
 end
     
     
