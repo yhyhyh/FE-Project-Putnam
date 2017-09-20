@@ -28,9 +28,9 @@ q=0
 bestp=0
 bestq=0
 minBIC=Inf
-for (p in 1:2){
-  for (q in 1:2) {
-    model= arima(re, order = c(p, 0, q))
+for (p in 1:5){
+  for (q in 1:5) {
+    model= arima(re, order = c(p, 1, q))
     bic=AIC(model,k = log(length(re)))
     if(bic<minBIC){
       bestp=p
