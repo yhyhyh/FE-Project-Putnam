@@ -1,6 +1,9 @@
 library(tseries)
 library(xts)
 library(forecast)
+library(rugarch)
+library(normtest)
+library(MASS)
 
 putnam_ts <- read.csv("trial1.csv", header = TRUE)
 tbill <- as.numeric(putnam_ts$T.Bill)
@@ -28,7 +31,7 @@ minBIC=Inf
 for (p in 1:2){
   for (q in 1:2) {
     model= arima(re, order = c(p, 0, q))
-    bic=AIC(model,k = log(length(nik_re_log)))
+    bic=AIC(model,k = log(length(re)))
     if(bic<minBIC){
       bestp=p
       bestq=q
