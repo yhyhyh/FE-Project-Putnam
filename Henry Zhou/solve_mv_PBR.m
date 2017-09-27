@@ -8,10 +8,13 @@ function [x0,x] = solve_mv_PBR(w_mv, mu, cov)
             mu4i(i,j) = sum((mu-mu(i)).^2.*(mu-mu(j)).^2)/n;
         end
     end
+    fprintf('00');
     Q2 = (mu4i-sig.^2)/n+(sig.^2+diag(sig)*diag(sig)')/(n*(n-1));
     A = nearestSPD(Q2);
     sig = nearestSPD(sig);
-    [x0,x] = cvx_mv_PBR2(0,mu,sig,A,mean(mu),10);
+    fprintf('hi');
+    [x0,x] = cvx_mv_PBR2(0,mu,sig,A,mean(mu),10000);
+    fprintf('bye');
     alpha = (diag(mu4i)/n-(n-3)/(n*(n-1))*(diag(sig).^2)).^0.25;
     %beta = -(ones(1,n)*pinv(cov)*alpha)/(ones(1,n)*pinv(cov)*ones(n,1));
 end

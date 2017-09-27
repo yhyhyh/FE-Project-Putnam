@@ -5,6 +5,8 @@
 function multi_period
 
     load Hist.mat; 
+    Price = csvread('data_v2.csv',1,1);
+    Price = Price(:, 11:14);
     n = size(Price,2);
     e = ones(n,1);
     horizon = 4;
@@ -14,7 +16,7 @@ function multi_period
     sample_frequency = 2;
     r_w_f_o_y_e = .4;
     allowable_risk = 1;
-    trans_cost = .005;
+    trans_cost = 0;
     wealth = 10000;
     x0 = .3;
     x = (.7/n)*e;
@@ -27,7 +29,6 @@ function multi_period
 
     rebalance_dates = start + horizon*(0:number_rebalances-1);
 
-    hist_cvar = zeros(1,length(rebalance_dates));
     hist_benchmark = zeros(1,length(rebalance_dates));
     hist_mvo = zeros(1,length(rebalance_dates));
     acc_cost1 = zeros(1,length(rebalance_dates));
@@ -51,11 +52,13 @@ function multi_period
 
         xx0 = x0;
         xx = x;
+        %V = nearestSPD(V);
         [x0,x] =  cvx_markowitz(mu0,mu,V,sigma,xx0,xx,trans_cost);
         [x0,x] = solve_mv_PBR(x, mu, V);
         acc_cost2(i) = acc_cost2(max(1,i-1))-x0-sum(x)+1;
-
-        wealth = wealth*(x0 + sum(x));
+        
+        %wealth = wealth*(x0 + sum(x));
+        x
         total = x0 + sum(x);	
         x0 = x0/total;
         x = x/total;
@@ -64,8 +67,9 @@ function multi_period
 
         multiplier = 1 + mu0*x0 + returns*x;	
         wealth = multiplier*wealth;
+        wealth
         hist_mvo(i) = wealth;
-        if wealth<=0
+        if (wealth <= 0)
             break;
         end
 
@@ -74,9 +78,7 @@ function multi_period
     end
 
     fprintf('your mvo wealth %f\n',wealth);
-
-    plot(hist_mvo);
-    
+    plot(hist_mvo);    
     std(price2ret(hist_mvo))
 
 end

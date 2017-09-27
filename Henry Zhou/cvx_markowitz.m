@@ -15,7 +15,7 @@ U = chol(V);
                     x0 + sum(x) + total_trans_cost == 1;
                     x == xx + y;
                     trans_cost * sum(abs(y)) <= total_trans_cost;
-                    x0 >= 0;
-                    abs(x-0.1*ones(n,1)) <= 0.05;
+                    x0 == 0;
+                    x >= 0
                     
     cvx_end

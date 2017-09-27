@@ -47,6 +47,7 @@ Ahat = (Ahat + Ahat')/2;
 % test that Ahat is in fact PD. if it is not so, then tweak it just a bit.
 p = 1;
 k = 0;
+cnt = 0;
 while p ~= 0
   [R,p] = chol(Ahat);
   k = k + 1;
@@ -57,4 +58,6 @@ while p ~= 0
     mineig = min(eig(Ahat));
     Ahat = Ahat + (-mineig*k.^2 + eps(mineig))*eye(size(A));
   end
+  cnt = cnt+1;
+  if (cnt==100) Ahat=eye(r); break; end
 end
