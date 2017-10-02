@@ -1,0 +1,9 @@
+function [mu,V] = stats_wo_kseg(Price,trade_date, k, horizon, ...
+                sample_frequency,number_of_samples,rate_of_decay)
+    start_date = trade_date - horizon;
+    seg_len = horizon / 5;
+    subPrice = Price([1 : start_date + (k - 1) * seg_len, ...
+        start_date + k * seg_len : trade_date], :);
+    [mu,V] = adapted_stats(subPrice, trade_date, horizon - seg_len, ...
+        sample_frequency, number_of_samples, rate_of_decay);
+end
