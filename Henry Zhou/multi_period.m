@@ -6,6 +6,7 @@ function multi_period
 
     load Hist.mat; 
     Price = csvread('data_v2.csv',1,1);
+    rf_hist = Price(:,1);
     Price = Price(:, 11:14);
     n = size(Price,2);
     e = ones(n,1);
@@ -20,6 +21,7 @@ function multi_period
     wealth = 10000;
     x0 = .3;
     x = (.7/n)*e;
+    rf = (rf_hist(start+horizon*number_of_samples) - rf_hist(start)) / rf_hist(start);
 
     benchmark_x0 = x0;  
     benchmark_x = x; 
@@ -78,7 +80,9 @@ function multi_period
     end
 
     fprintf('your mvo wealth %f\n',wealth);
-    plot(hist_mvo);    
+    plot(hist_mvo); 
+    tot_ret = (hist_mvo(end) - hist_mvo(1)) / hist_mvo(1);
     std(price2ret(hist_mvo))
+    (tot_ret - rf) / std(price2ret(hist_mvo))
 
 end
