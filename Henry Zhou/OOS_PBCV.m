@@ -20,7 +20,6 @@ function [sig, A, U_star] = OOS_PBCV(w_mv, mu, cov)
     else
         U_star = findUstar(Umax, Umin, mu, A, cov);
     end
-    
     alpha = (diag(mu4i)/n-(n-3)/(n*(n-1))*(diag(sig).^2)).^0.25;
 end
     

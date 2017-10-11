@@ -55,7 +55,7 @@ n_s = number_of_samples; r_d = rate_of_decay;
 
 s_d = t_d - 1 - s_f*[0:n_s];    % reverse chronological
 s_d = fliplr(s_d);              % chronological
-% sample dates, a row vector
+% sample dates, a row vector = 
 
 S_P = P(s_d,:);
 % Sample Prices, a matrix

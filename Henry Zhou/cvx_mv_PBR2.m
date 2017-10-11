@@ -1,4 +1,4 @@
-function [x0,x] = cvx_mv_PBR2(mu0,mu,V,A,r,sqrtU)
+function [x0,x] = cvx_mv_PBR2(mu,V,A,r,sqrtU)
 
 n = length(mu);
 U = chol(V);
@@ -10,7 +10,7 @@ U = chol(V);
         maximize(-norm(U * x))
         
         subject to
-                    mu' * x >= r;
+                    %mu' * x >= r;
                     sum(x) == 1;
                     x >= 0;
                     x' * A * x <= sqrtU;
