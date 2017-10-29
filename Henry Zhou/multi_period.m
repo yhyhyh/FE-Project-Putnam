@@ -8,7 +8,8 @@ function multi_period
     Price = csvread('data_v2.csv',1,1);
     rf_hist = Price(:,1);
     risk_free_rate = price2ret(Price(:,1));
-    Price = Price(:, [2,3,4,6,7,11:14,16,17]);
+    %asset_selector = [2,3,4,6,7,11:14,16,17]
+    Price = Price(:, [2,3]);
     n = size(Price,2);
     e = ones(n,1);
     horizon = 20;
@@ -73,7 +74,6 @@ function multi_period
         acc_cost2(i) = acc_cost2(max(1,i-1))-x0-sum(x)+1;
         
         %wealth = wealth*(x0 + sum(x));
-        x
         total = x0 + sum(x);	
         x0 = x0/total;
         x = x/total;
@@ -97,6 +97,9 @@ function multi_period
     tot_ret = (hist_mvo(end) - hist_mvo(1)) / hist_mvo(1);
     std(price2ret(hist_mvo))
     (tot_ret - rf) / std(price2ret(hist_mvo))
+    skewness(price2ret(hist_mvo))
+    kurtosis(price2ret(hist_mvo))
+    maxdrawdown(hist_mvo)
    
     benchmark_x0 = x0;  
     benchmark_x = x; 
@@ -134,7 +137,6 @@ function multi_period
         acc_cost2(i) = acc_cost2(max(1,i-1))-x0-sum(x)+1;
         
         %wealth = wealth*(x0 + sum(x));
-        x
         total = x0 + sum(x);	
         x0 = x0/total;
         x = x/total;
@@ -158,6 +160,7 @@ function multi_period
     tot_ret = (hist_mvo(end) - hist_mvo(1)) / hist_mvo(1);
     std(price2ret(hist_mvo))
     (tot_ret - rf) / std(price2ret(hist_mvo))
-   
-    rf
+    skewness(price2ret(hist_mvo))
+    kurtosis(price2ret(hist_mvo))
+    maxdrawdown(hist_mvo)
 end
