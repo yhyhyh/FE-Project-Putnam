@@ -5,16 +5,18 @@
 function multi_period
 
     load Hist.mat; 
+    load hist_r_file.mat;
     Price = csvread('data_v2.csv',1,1);
     rf_hist = Price(:,1);
     risk_free_rate = price2ret(Price(:,1));
-    %asset_selector = [2,3,4,6,7,11:14,16,17]
-    Price = Price(:, [2,3]);
+    asset_selector = [2,3,4,6,7,11:14,16,17];
+    Price = Price(:, asset_selector);
+    hist_r = hist_r(:, asset_selector);
     n = size(Price,2);
     e = ones(n,1);
-    horizon = 20;
+    horizon = 5;
     start = 526;
-    number_rebalances = 60;
+    number_rebalances = 6;
     number_of_samples = 100;
     sample_frequency = 1;
     r_w_f_o_y_e = .4;
@@ -60,7 +62,7 @@ function multi_period
         [x0,x] =  cvx_markowitz(mu0,mu,V,sigma,xx0,xx,trans_cost);
         %[x0,x] = solve_mv_PBR(x, mu, V);
         [sig, A, U_star] = OOS_PBCV(x, mu, V);
-        U_star_list = ones(5);
+        %U_star_list = ones(5);
         Nofk = 3;
         for k=1:1:Nofk
             [mu,V] = stats_wo_kseg(Price,trade_date, k, horizon, ...
@@ -69,8 +71,13 @@ function multi_period
             U_star = U_star + U_star_l;
         end
         U_star = U_star / Nofk;
-
-        [x0,x] = cvx_mv_PBR2(mu,V,A,mean(mu),U_star^0.5);
+        
+        
+        % changes made here
+        %[x0,x] = cvx_mv_PBR2(mu,V,A,mean(mu),U_star^0.5);
+        x = cvx_cv_PBR(trade_date, V, hist_r, U_star^0.5);
+        
+        
         acc_cost2(i) = acc_cost2(max(1,i-1))-x0-sum(x)+1;
         
         %wealth = wealth*(x0 + sum(x));
