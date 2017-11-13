@@ -2,27 +2,25 @@
 % The main entrance of back-testing system
 %--------------------------------------------
 
-function multi_period
-
-    load Hist.mat; 
+function multi_period(Price)
     load hist_r_file.mat;
-    Price = csvread('data_v2.csv',1,1);
-    rf_hist = Price(:,1);
-    risk_free_rate = price2ret(Price(:,1));
-    asset_selector = [2,3,4,6,7,11:14,16,17];
+    load Hist.mat;
+    rf_hist = hist_r(:,1);
+    risk_free_rate = zeros(3833,1);
+    asset_selector = 2:17;
     Price = Price(:, asset_selector);
     hist_r = hist_r(:, asset_selector);
-    n = size(Price,2);
+    n = size(hist_r,2);
     e = ones(n,1);
-    horizon = 5;
-    start = 526;
-    number_rebalances = 6;
+    horizon = 20;
+    start = 500;
+    number_rebalances = 165;
     number_of_samples = 100;
     sample_frequency = 1;
     r_w_f_o_y_e = .4;
-    allowable_risk = 1;
+    allowable_risk = 1.5;
     trans_cost = 0;
-    wealth = 10000;
+    wealth = 100;
     x0 = .3;
     x = (.7/n)*e;
     rf = (rf_hist(start+horizon*number_rebalances) - rf_hist(start)) / rf_hist(start);
@@ -34,18 +32,18 @@ function multi_period
     benchmark_wealth = wealth;	
 
     rebalance_dates = start + horizon*(0:number_rebalances-1);
+    csvwrite('rebalance_dates.csv',rebalance_dates);
 
     hist_benchmark = zeros(1,length(rebalance_dates));
     hist_mvo = zeros(1,length(rebalance_dates));
     acc_cost1 = zeros(1,length(rebalance_dates));
     acc_cost2 = zeros(1,length(rebalance_dates));
     
-    wealth = 10000;
+    wealth = 100;
     x0 = .3;
     x = (.7/n)*e;
        
     for i = 1:length(rebalance_dates)
-    %for i = 1:1
 
         trade_date = rebalance_dates(i);
 
@@ -75,8 +73,9 @@ function multi_period
         
         % changes made here
         %[x0,x] = cvx_mv_PBR2(mu,V,A,mean(mu),U_star^0.5);
-        x = cvx_cv_PBR(trade_date, V, hist_r, U_star^0.5);
-        
+        x = cvx_cv_PBR(trade_date, V, hist_r, 0.95, U_star^0.5);
+        x
+        sum(x)
         
         acc_cost2(i) = acc_cost2(max(1,i-1))-x0-sum(x)+1;
         
@@ -89,7 +88,7 @@ function multi_period
 
         multiplier = 1 + mu0*x0 + returns*x;	
         wealth = multiplier*wealth;
-        wealth
+        fprintf('%d %f\n',i,wealth);
         hist_mvo(i) = wealth;
         if (wealth <= 0)
             break;
@@ -98,15 +97,17 @@ function multi_period
         x0 = (1+mu0)*x0/multiplier;
         x = x.*(1+returns)'/multiplier;
     end
-
+    
+    metrics = [];
     fprintf('your final wealth %f\n',wealth);
     plot(hist_mvo); hold on
+    res_all = hist_mvo;
     tot_ret = (hist_mvo(end) - hist_mvo(1)) / hist_mvo(1);
     std(price2ret(hist_mvo))
-    (tot_ret - rf) / std(price2ret(hist_mvo))
-    skewness(price2ret(hist_mvo))
-    kurtosis(price2ret(hist_mvo))
-    maxdrawdown(hist_mvo)
+    sharpe = (tot_ret - rf) / std(price2ret(hist_mvo));
+    skw = skewness(price2ret(hist_mvo));
+    kur = kurtosis(price2ret(hist_mvo));
+    metrics = [metrics; [sharpe, skw, kur]];
    
     benchmark_x0 = x0;  
     benchmark_x = x; 
@@ -121,7 +122,7 @@ function multi_period
     acc_cost1 = zeros(1,length(rebalance_dates));
     acc_cost2 = zeros(1,length(rebalance_dates));
     
-    wealth = 10000;
+    wealth = 100;
     x0 = .3;
     x = (.7/n)*e;
        
@@ -140,7 +141,8 @@ function multi_period
         xx0 = x0;
         xx = x;
         %V = nearestSPD(V);
-        [x0,x] =  cvx_markowitz(mu0,mu,V,sigma,xx0,xx,trans_cost);
+        %[x0,x] =  cvx_markowitz(mu0,mu,V,sigma,xx0,xx,trans_cost);
+        x = 1.0 / n * e;
         acc_cost2(i) = acc_cost2(max(1,i-1))-x0-sum(x)+1;
         
         %wealth = wealth*(x0 + sum(x));
@@ -161,13 +163,19 @@ function multi_period
         x0 = (1+mu0)*x0/multiplier;
         x = x.*(1+returns)'/multiplier;
     end
-
+    
     fprintf('your mvo wealth %f\n',wealth);
     plot(hist_mvo); 
     tot_ret = (hist_mvo(end) - hist_mvo(1)) / hist_mvo(1);
     std(price2ret(hist_mvo))
-    (tot_ret - rf) / std(price2ret(hist_mvo))
-    skewness(price2ret(hist_mvo))
-    kurtosis(price2ret(hist_mvo))
-    maxdrawdown(hist_mvo)
+    sharpe = (tot_ret - rf) / std(price2ret(hist_mvo));
+    skw = skewness(price2ret(hist_mvo));
+    kur =  kurtosis(price2ret(hist_mvo));
+    
+    metrics = [metrics; [sharpe, skw, kur]];
+    metrics
+    %maxdrawdown(hist_mvo)
+    res_all = [res_all; hist_mvo];
+    csvwrite('res_all.csv',res_all);
+   
 end

@@ -1,4 +1,4 @@
-function [x0,x] =  cvx_markowitz2_2(mu0,mu,V,sigma,xx0,xx,trans_cost);
+function [x0,x] =  cvx_markowitz(mu0,mu,V,sigma,xx0,xx,trans_cost);
 
 n = length(mu);
 U = chol(V);
@@ -7,15 +7,14 @@ U = chol(V);
     
         variables x0 x(n) y(n) total_trans_cost
               
-        maximize(mu0 * x0 + mu' * x)
+        maximize(mu' * x)
         
         subject to
                     
                     norm(U * x) <= sigma;
-                    x0 + sum(x) + total_trans_cost == 1;
-                    x == xx + y;
-                    trans_cost * sum(abs(y)) <= total_trans_cost;
+                    x0 + sum(x) == 1;
                     x0 == 0;
-                    x >= 0
+                    x >= 0;
+                    x <= 0.1
                     
     cvx_end
