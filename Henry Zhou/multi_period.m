@@ -104,22 +104,18 @@ function multi_period(Price)
     res_all = hist_mvo;
     tot_ret = (hist_mvo(end) - hist_mvo(1)) / hist_mvo(1);
     std(price2ret(hist_mvo))
-    sharpe = (tot_ret - rf) / std(price2ret(hist_mvo));
+    NofDay = size(hist_r,1);
+    sharpe = (tot_ret - rf)/ (NofDay / 252) / ...
+        (std(price2ret(hist_mvo)) * sqrt(252));
     skw = skewness(price2ret(hist_mvo));
     kur = kurtosis(price2ret(hist_mvo));
     metrics = [metrics; [sharpe, skw, kur]];
    
-    benchmark_x0 = x0;  
-    benchmark_x = x; 
-    rate_of_decay = 1 - r_w_f_o_y_e^(sample_frequency/52);
-    initial_wealth = wealth;
-    benchmark_wealth = wealth;	
 
+    rate_of_decay = 1 - r_w_f_o_y_e^(sample_frequency/52);
     rebalance_dates = start + horizon*(0:number_rebalances-1);
 
-    hist_benchmark = zeros(1,length(rebalance_dates));
     hist_mvo = zeros(1,length(rebalance_dates));
-    acc_cost1 = zeros(1,length(rebalance_dates));
     acc_cost2 = zeros(1,length(rebalance_dates));
     
     wealth = 100;
@@ -127,7 +123,6 @@ function multi_period(Price)
     x = (.7/n)*e;
        
     for i = 1:length(rebalance_dates)
-    %for i = 1:1
 
         trade_date = rebalance_dates(i);
 
@@ -166,9 +161,12 @@ function multi_period(Price)
     
     fprintf('your mvo wealth %f\n',wealth);
     plot(hist_mvo); 
+    legend('CV PBR','Benchmark');
     tot_ret = (hist_mvo(end) - hist_mvo(1)) / hist_mvo(1);
     std(price2ret(hist_mvo))
-    sharpe = (tot_ret - rf) / std(price2ret(hist_mvo));
+    NofDay = size(hist_r,1);
+    sharpe = (tot_ret - rf)/ (NofDay / 252) / ...
+        (std(price2ret(hist_mvo)) * sqrt(252));
     skw = skewness(price2ret(hist_mvo));
     kur =  kurtosis(price2ret(hist_mvo));
     
@@ -176,6 +174,6 @@ function multi_period(Price)
     metrics
     %maxdrawdown(hist_mvo)
     res_all = [res_all; hist_mvo];
-    csvwrite('res_all.csv',res_all);
+    csvwrite('res_all.csv',res_all');
    
 end

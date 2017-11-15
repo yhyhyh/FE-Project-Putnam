@@ -23,12 +23,12 @@ cvx_begin quiet
     subject to
 
                 sum(w) == 1;
-                %(1/(n*(1-b)^2))*z'*Omega*z <= U;
+                (1/(n*(1-b)^2))*z'*nearest(Omega)*z <= U;
                 r_now * w >= r_mean;
                 z >= 0;
                 z >= -r * w - a;
-                (1/n)*w'*V*w <= U;
+                %(1/n)*w'*V*w <= U;
                 w >= 0
-                w <= 0.2
+                %w <= 0.2
                                
 cvx_end                               
