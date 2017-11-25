@@ -12,10 +12,10 @@ function multi_period(Price)
     hist_r = hist_r(:, asset_selector);
     n = size(hist_r,2);
     e = ones(n,1);
-    horizon = 20;
-    start = 500;
-    number_rebalances = 165;
-    number_of_samples = 100;
+    horizon = 5;
+    start = 100;
+    number_rebalances = 746;
+    number_of_samples = 50;
     sample_frequency = 1;
     r_w_f_o_y_e = .4;
     allowable_risk = 1.5;
@@ -56,12 +56,12 @@ function multi_period(Price)
 
         xx0 = x0;
         xx = x;
-        %V = nearestSPD(V);
+        V = nearestSPD(V);
         [x0,x] =  cvx_markowitz(mu0,mu,V,sigma,xx0,xx,trans_cost);
         %[x0,x] = solve_mv_PBR(x, mu, V);
         [sig, A, U_star] = OOS_PBCV(x, mu, V);
         %U_star_list = ones(5);
-        Nofk = 3;
+        Nofk = 2;
         for k=1:1:Nofk
             [mu,V] = stats_wo_kseg(Price,trade_date, k, horizon, ...
                 sample_frequency,number_of_samples,rate_of_decay);
@@ -70,13 +70,13 @@ function multi_period(Price)
         end
         U_star = U_star / Nofk;
         
-        
+        V = nearestSPD(V);
         % changes made here
         %[x0,x] = cvx_mv_PBR2(mu,V,A,mean(mu),U_star^0.5);
         x = cvx_cv_PBR(trade_date, V, hist_r, 0.95, U_star^0.5);
         x
         sum(x)
-        
+         
         acc_cost2(i) = acc_cost2(max(1,i-1))-x0-sum(x)+1;
         
         %wealth = wealth*(x0 + sum(x));
@@ -109,7 +109,7 @@ function multi_period(Price)
         (std(price2ret(hist_mvo)) * sqrt(252));
     skw = skewness(price2ret(hist_mvo));
     kur = kurtosis(price2ret(hist_mvo));
-    metrics = [metrics; [sharpe, skw, kur]];
+    metrics = [metrics; [sharpe, skw, kur, maxdrawdown(hist_mvo)]];
    
 
     rate_of_decay = 1 - r_w_f_o_y_e^(sample_frequency/52);
@@ -165,12 +165,12 @@ function multi_period(Price)
     tot_ret = (hist_mvo(end) - hist_mvo(1)) / hist_mvo(1);
     std(price2ret(hist_mvo))
     NofDay = size(hist_r,1);
-    sharpe = (tot_ret - rf)/ (NofDay / 252) / ...
-        (std(price2ret(hist_mvo)) * sqrt(252));
+    sharpe = (tot_ret - rf)/ (NofDay / 50) / ...
+        (std(price2ret(hist_mvo)) * sqrt(50));
     skw = skewness(price2ret(hist_mvo));
     kur =  kurtosis(price2ret(hist_mvo));
     
-    metrics = [metrics; [sharpe, skw, kur]];
+    metrics = [metrics; [sharpe, skw, kur, maxdrawdown(hist_mvo)]];
     metrics
     %maxdrawdown(hist_mvo)
     res_all = [res_all; hist_mvo];

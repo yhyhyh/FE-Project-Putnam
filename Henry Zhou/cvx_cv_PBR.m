@@ -28,7 +28,7 @@ cvx_begin quiet
                 z >= 0;
                 z >= -r * w - a;
                 %(1/n)*w'*V*w <= U;
-                w >= 0
+                w >= -0.1
                 %w <= 0.2
                                
 cvx_end                               

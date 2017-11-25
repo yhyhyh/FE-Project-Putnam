@@ -12,6 +12,6 @@ U = chol(V);
         subject to
                     %mu' * x >= r;
                     sum(x) == 1;
-                    x >= 0;
+                    x >= -0.1;
                     x' * A * x <= sqrtU;
     cvx_end
