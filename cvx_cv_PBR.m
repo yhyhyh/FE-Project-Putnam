@@ -11,8 +11,9 @@ function w = cvx_cv_PBR(n,V,R,b,U)
 noa = size(R,2);
 Omega = (1/(n-1))*(eye(n)-(1/n)*ones(n,n));
 r = R(1:n, :);
-r_now = R(n,:);
-r_mean = mean(r_now);
+r_now = sum(R(n-20:n,:));
+r_mean = mean(r_now)*1.4;
+%Omega = nearestSPD(Omega);
 
 cvx_begin quiet
     

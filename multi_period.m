@@ -5,6 +5,7 @@
 function multi_period(Price)
     load hist_r_file.mat;
     load Hist.mat;
+    load cov_percent.mat;
     rf_hist = hist_r(:,1);
     risk_free_rate = zeros(3833,1);
     asset_selector = 2:17;
@@ -42,74 +43,76 @@ function multi_period(Price)
     wealth = 100;
     x0 = .3;
     x = (.7/n)*e;
-       
-    for i = 1:length(rebalance_dates)
-
-        trade_date = rebalance_dates(i);
-
-        [mu,V] = adapted_stats(Price,trade_date, ...
-                horizon,sample_frequency,number_of_samples,rate_of_decay);
-        mu0 = (1+.01*risk_free_rate(trade_date-1))^(horizon/52) - 1;
-
-        benchmark_risk = sqrt(e'*V*e)/(n+1);
-        sigma = allowable_risk*benchmark_risk; 
-
-        xx0 = x0;
-        xx = x;
-        V = nearestSPD(V);
-        [x0,x] =  cvx_markowitz(mu0,mu,V,sigma,xx0,xx,trans_cost);
-        %[x0,x] = solve_mv_PBR(x, mu, V);
-        [sig, A, U_star] = OOS_PBCV(x, mu, V);
-        %U_star_list = ones(5);
-        Nofk = 2;
-        for k=1:1:Nofk
-            [mu,V] = stats_wo_kseg(Price,trade_date, k, horizon, ...
-                sample_frequency,number_of_samples,rate_of_decay);
-            [temp0, temp1, U_star_l] = OOS_PBCV(x, mu, V);
-            U_star = U_star + U_star_l;
-        end
-        U_star = U_star / Nofk;
-        
-        V = nearestSPD(V);
-        % changes made here
-        %[x0,x] = cvx_mv_PBR2(mu,V,A,mean(mu),U_star^0.5);
-        x = cvx_cv_PBR(trade_date, V, hist_r, 0.95, U_star^0.5);
-        x
-        sum(x)
-         
-        acc_cost2(i) = acc_cost2(max(1,i-1))-x0-sum(x)+1;
-        
-        %wealth = wealth*(x0 + sum(x));
-        total = x0 + sum(x);	
-        x0 = x0/total;
-        x = x/total;
-        returns = (Price(trade_date+horizon-1,:)-Price(trade_date-1,:))...
-            ./Price(trade_date-1,:);
-
-        multiplier = 1 + mu0*x0 + returns*x;	
-        wealth = multiplier*wealth;
-        fprintf('%d %f\n',i,wealth);
-        hist_mvo(i) = wealth;
-        if (wealth <= 0)
-            break;
-        end
-
-        x0 = (1+mu0)*x0/multiplier;
-        x = x.*(1+returns)'/multiplier;
-    end
     
-    metrics = [];
-    fprintf('your final wealth %f\n',wealth);
-    plot(hist_mvo); hold on
-    res_all = hist_mvo;
-    tot_ret = (hist_mvo(end) - hist_mvo(1)) / hist_mvo(1);
-    std(price2ret(hist_mvo))
-    NofDay = size(hist_r,1);
-    sharpe = (tot_ret - rf)/ (NofDay / 252) / ...
-        (std(price2ret(hist_mvo)) * sqrt(252));
-    skw = skewness(price2ret(hist_mvo));
-    kur = kurtosis(price2ret(hist_mvo));
-    metrics = [metrics; [sharpe, skw, kur, maxdrawdown(hist_mvo)]];
+%     hist_holding = [];  
+%     for i = 1:length(rebalance_dates)
+% 
+%         trade_date = rebalance_dates(i);
+% 
+%         [mu,V] = adapted_stats(Price,trade_date, ...
+%                 horizon,sample_frequency,number_of_samples,rate_of_decay);
+%         mu0 = (1+.01*risk_free_rate(trade_date-1))^(horizon/52) - 1;
+% 
+%         benchmark_risk = sqrt(e'*V*e)/(n+1);
+%         sigma = allowable_risk*benchmark_risk; 
+% 
+%         xx0 = x0;
+%         xx = x;
+%         V = nearestSPD(V);
+%         [x0,x] =  cvx_markowitz(mu0,mu,V,sigma,xx0,xx,trans_cost);
+%         %[x0,x] =  cvx_minvar(mu0,mu,V,sigma,xx0,xx,trans_cost);
+%         %[x0,x] =  cvx_riskparity(mu0,mu,V,sigma,xx0,xx,trans_cost);
+%         %[x0,x] = solve_mv_PBR(x, mu, V);
+%         [sig, A, U_star] = OOS_PBCV(x, mu, V);
+%         Nofk = 2;
+%         for k=1:1:Nofk
+%             [mu,V] = stats_wo_kseg(Price,trade_date, k, horizon, ...
+%                 sample_frequency,number_of_samples,rate_of_decay);
+%             [temp0, temp1, U_star_l] = OOS_PBCV(x, mu, V);
+%             U_star = U_star + U_star_l;
+%         end
+%         U_star = U_star / Nofk;
+%         
+%         V = nearestSPD(V);
+%         % changes made here
+%         %[x0,x] = cvx_mv_PBR2(mu,V,A,mean(mu),U_star^0.5);
+%         x = cvx_cv_PBR(trade_date, V, hist_r, 0.95, U_star^0.5);
+%         hist_holding = [hist_holding; x'];
+%         sum(x)
+%          
+%         acc_cost2(i) = acc_cost2(max(1,i-1))-x0-sum(x)+1;
+%         
+%         %wealth = wealth*(x0 + sum(x));
+%         total = x0 + sum(x);	
+%         x0 = x0/total;
+%         x = x/total;
+%         returns = (Price(trade_date+horizon-1,:)-Price(trade_date-1,:))...
+%             ./Price(trade_date-1,:);
+% 
+%         multiplier = 1 + mu0*x0 + returns*x;	
+%         wealth = multiplier*wealth;
+%         fprintf('%d %f\n',i,wealth);
+%         hist_mvo(i) = wealth;
+%         if (wealth <= 0)
+%             break;
+%         end
+% 
+%         x0 = (1+mu0)*x0/multiplier;
+%         x = x.*(1+returns)'/multiplier;
+%     end
+%     
+%     metrics = [];
+%     fprintf('your final wealth %f\n',wealth);
+%     plot(hist_mvo); hold on
+%     res_all = hist_mvo;
+%     tot_ret = (hist_mvo(end) - hist_mvo(1)) / hist_mvo(1);
+%     std(price2ret(hist_mvo))
+%     NofDay = size(hist_r,1);
+%     sharpe = (tot_ret - rf)/ (NofDay / 252) / ...
+%         (std(price2ret(hist_mvo)) * sqrt(252));
+%     skw = skewness(price2ret(hist_mvo));
+%     kur = kurtosis(price2ret(hist_mvo));
+%     metrics = [metrics; [sharpe, skw, kur, maxdrawdown(hist_mvo)]];
    
 
     rate_of_decay = 1 - r_w_f_o_y_e^(sample_frequency/52);
@@ -121,7 +124,8 @@ function multi_period(Price)
     wealth = 100;
     x0 = .3;
     x = (.7/n)*e;
-       
+    
+    hist_holding = [];   
     for i = 1:length(rebalance_dates)
 
         trade_date = rebalance_dates(i);
@@ -135,18 +139,23 @@ function multi_period(Price)
 
         xx0 = x0;
         xx = x;
-        %V = nearestSPD(V);
+        V = nearestSPD(V);
+        V = cell2mat(M(i));
+        V = V(1:16,1:16);
         %[x0,x] =  cvx_markowitz(mu0,mu,V,sigma,xx0,xx,trans_cost);
-        x = 1.0 / n * e;
+        [x0,x] =  cvx_minvar(mu0,mu,V,sigma,xx0,xx,trans_cost);
+        %wgt = ones(n,1) ./ diag(V);
+        %x = wgt / sum(wgt);
         acc_cost2(i) = acc_cost2(max(1,i-1))-x0-sum(x)+1;
         
         %wealth = wealth*(x0 + sum(x));
         total = x0 + sum(x);	
         x0 = x0/total;
         x = x/total;
+        hist_holding = [hist_holding; x'];
         returns = (Price(trade_date+horizon-1,:)-Price(trade_date-1,:))...
             ./Price(trade_date-1,:);
-
+        
         multiplier = 1 + mu0*x0 + returns*x;	
         wealth = multiplier*wealth;
         wealth
@@ -169,11 +178,12 @@ function multi_period(Price)
         (std(price2ret(hist_mvo)) * sqrt(50));
     skw = skewness(price2ret(hist_mvo));
     kur =  kurtosis(price2ret(hist_mvo));
+    csvwrite('hist_holding.csv', hist_holding);
     
-    metrics = [metrics; [sharpe, skw, kur, maxdrawdown(hist_mvo)]];
-    metrics
+%     metrics = [metrics; [sharpe, skw, kur, maxdrawdown(hist_mvo)]];
+%     metrics
     %maxdrawdown(hist_mvo)
-    res_all = [res_all; hist_mvo];
+    res_all = hist_mvo;
     csvwrite('res_all.csv',res_all');
    
 end
